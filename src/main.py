@@ -10,8 +10,8 @@ class Duplicator():
 
     def __init__(self):
 
-        self.folder_images = "images"
-        self.folder_duplicates = "images/duplicates"
+        self.folder_originals = "originals"
+        self.folder_duplicates = "duplicates"
 
         self.chars = "abcdefghijklmnopqrstuvwxyz"
         
@@ -59,11 +59,11 @@ class Duplicator():
 
         treeviewdata = []
 
-        for file in os.listdir(self.folder_images):
+        for file in os.listdir(self.folder_originals):
             try:
 
                 # Get info from the image
-                image = Image.open(f"{self.folder_images}/{file}")
+                image = Image.open(f"{self.folder_originals}/{file}")
                 image_name, image_extension = os.path.splitext(file)
                 image_width, image_height = image.size
                 
