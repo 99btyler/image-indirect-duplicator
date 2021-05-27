@@ -56,6 +56,9 @@ class Duplicator():
         self.root.mainloop()
     
     def __duplicate(self):
+
+        treeviewdata = []
+
         for file in os.listdir(self.folder_images):
             try:
 
@@ -66,8 +69,6 @@ class Duplicator():
                 
                 # Create info for the image's duplicate
                 leading_chars = self.__get_random_string(2)
-
-                treeviewdata = []
 
                 for i in range(int(self.stringvar_amount.get())):
 
@@ -82,11 +83,11 @@ class Duplicator():
                     new_image.save(f"{self.folder_duplicates}/{new_image_name}{image_extension}")
                     treeviewdata.append(f"{new_image_name}({new_image_width}x{new_image_height})")
                     print(f"Duplicated {image_name}({image_width}x{image_height}) as {new_image_name}({new_image_width}x{new_image_height})")
-                
-                self.__update_treeview_duplicates(treeviewdata)
 
             except:
                 pass
+        
+        self.__update_treeview_duplicates(treeviewdata)
     
     def __update_treeview_duplicates(self, treeviewdata):
         self.treeview_duplicates.delete(*self.treeview_duplicates.get_children())
