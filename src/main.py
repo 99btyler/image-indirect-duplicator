@@ -55,9 +55,6 @@ class Duplicator():
     
     def __duplicate(self):
 
-        used_size_multipliers = [] # to ensure unique multipliers
-        max_amount = int(self.stringvar_maxpercent.get()) - int(self.stringvar_minpercent.get()) # to avoid endless while loop
-
         treeviewdata = []
 
         for file in os.listdir(self.folder_originals):
@@ -67,6 +64,9 @@ class Duplicator():
             except:
                 print(f"Skipping {file} due to error")
                 continue
+            
+            used_size_multipliers = [] # to ensure unique multipliers
+            max_amount = int(self.stringvar_maxpercent.get()) - int(self.stringvar_minpercent.get()) # to avoid endless while loop
             
             # Get info from the image
             image_name, image_extension = os.path.splitext(file)
