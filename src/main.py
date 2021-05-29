@@ -55,7 +55,9 @@ class Duplicator():
     
     def __duplicate(self):
 
-        used_size_multipliers = []
+        used_size_multipliers = [] # to ensure unique multipliers
+        max_amount = int(self.stringvar_maxpercent.get()) - int(self.stringvar_minpercent.get()) # to avoid endless while loop
+
         treeviewdata = []
 
         for file in os.listdir(self.folder_originals):
@@ -74,6 +76,9 @@ class Duplicator():
             leading_chars = self.__get_random_string(2)
 
             for i in range(int(self.stringvar_amount.get())):
+
+                if len(used_size_multipliers) >= max_amount:
+                    break
 
                 size_multiplier = random.randint(int(self.stringvar_minpercent.get()), int(self.stringvar_maxpercent.get())) / 100
                 while size_multiplier in used_size_multipliers:
