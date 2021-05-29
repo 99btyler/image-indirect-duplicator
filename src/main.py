@@ -55,6 +55,7 @@ class Duplicator():
     
     def __duplicate(self):
 
+        used_size_multipliers = []
         treeviewdata = []
 
         for file in os.listdir(self.folder_originals):
@@ -73,16 +74,22 @@ class Duplicator():
             leading_chars = self.__get_random_string(2)
 
             for i in range(int(self.stringvar_amount.get())):
+
+                size_multiplier = random.randint(int(self.stringvar_minpercent.get()), int(self.stringvar_maxpercent.get())) / 100
+                while size_multiplier in used_size_multipliers:
+                    print(f"{size_multiplier} multiplier was already used, selecting different one...")
+                    size_multiplier = random.randint(int(self.stringvar_minpercent.get()), int(self.stringvar_maxpercent.get())) / 100
                 
                 new_image_name = f"{leading_chars}{i}{self.__get_random_string(5)}"
 
-                size_multiplier = random.randint(int(self.stringvar_minpercent.get()), int(self.stringvar_maxpercent.get())) / 100
                 new_image_width = int(image_width * size_multiplier)
                 new_image_height = int(image_height * size_multiplier)
 
                 # Save the duplicate
                 new_image = image.resize((new_image_width, new_image_height))
                 new_image.save(f"{self.folder_duplicates}/{new_image_name}{image_extension}")
+
+                used_size_multipliers.append(size_multiplier)
                 treeviewdata.append(f"{new_image_name}({new_image_width}x{new_image_height})")
                 print(f"Duplicated {image_name}({image_width}x{image_height}) as {new_image_name}({new_image_width}x{new_image_height})")
         
