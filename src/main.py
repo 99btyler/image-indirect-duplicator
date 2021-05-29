@@ -12,8 +12,6 @@ class Duplicator():
 
         self.folder_originals = "originals"
         self.folder_duplicates = "duplicates"
-
-        self.chars = "abcdefghijklmnopqrstuvwxyz"
         
         # Tkinter root
         self.root = tk.Tk()
@@ -60,32 +58,33 @@ class Duplicator():
         treeviewdata = []
 
         for file in os.listdir(self.folder_originals):
+
             try:
-
-                # Get info from the image
                 image = Image.open(f"{self.folder_originals}/{file}")
-                image_name, image_extension = os.path.splitext(file)
-                image_width, image_height = image.size
-                
-                # Create info for the image's duplicate
-                leading_chars = self.__get_random_string(2)
-
-                for i in range(int(self.stringvar_amount.get())):
-
-                    new_image_name = f"{leading_chars}{i}{self.__get_random_string(5)}"
-
-                    multiplier = random.randint(int(self.stringvar_minpercent.get()), int(self.stringvar_maxpercent.get())) / 100
-                    new_image_width = int(image_width * multiplier)
-                    new_image_height = int(image_height * multiplier)
-                    
-                    # Save the duplicate
-                    new_image = image.resize((new_image_width, new_image_height))
-                    new_image.save(f"{self.folder_duplicates}/{new_image_name}{image_extension}")
-                    treeviewdata.append(f"{new_image_name}({new_image_width}x{new_image_height})")
-                    print(f"Duplicated {image_name}({image_width}x{image_height}) as {new_image_name}({new_image_width}x{new_image_height})")
-
             except:
-                pass
+                print(f"Skipping {file} due to error")
+                continue
+            
+            # Get info from the image
+            image_name, image_extension = os.path.splitext(file)
+            image_width, image_height = image.size
+
+            # Create info for the image's duplicate
+            leading_chars = self.__get_random_string(2)
+
+            for i in range(int(self.stringvar_amount.get())):
+                
+                new_image_name = f"{leading_chars}{i}{self.__get_random_string(5)}"
+
+                size_multiplier = random.randint(int(self.stringvar_minpercent.get()), int(self.stringvar_maxpercent.get())) / 100
+                new_image_width = int(image_width * size_multiplier)
+                new_image_height = int(image_height * size_multiplier)
+
+                # Save the duplicate
+                new_image = image.resize((new_image_width, new_image_height))
+                new_image.save(f"{self.folder_duplicates}/{new_image_name}{image_extension}")
+                treeviewdata.append(f"{new_image_name}({new_image_width}x{new_image_height})")
+                print(f"Duplicated {image_name}({image_width}x{image_height}) as {new_image_name}({new_image_width}x{new_image_height})")
         
         self.__update_treeview_duplicates(treeviewdata)
     
@@ -95,9 +94,10 @@ class Duplicator():
             self.treeview_duplicates.insert("", tk.END, text=data)
     
     def __get_random_string(self, length):
+        chars = "abcdefghijklmnopqrstuvwxyz"
         string = ""
         for i in range(length):
-            string += self.chars[random.randint(0, len(self.chars)-1)]
+            string += chars[random.randint(0, len(chars)-1)]
         return string
 
 
