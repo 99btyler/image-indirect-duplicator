@@ -1,5 +1,6 @@
 import os
 import random
+import threading
 import tkinter as tk
 from tkinter import ttk
 
@@ -12,6 +13,8 @@ class Duplicator():
 
         self.folder_originals = "originals"
         self.folder_duplicates = "duplicates"
+
+        self.duplicating = False
         
         # Tkinter root
         self.root = tk.Tk()
@@ -26,19 +29,19 @@ class Duplicator():
         self.treeview_duplicates = ttk.Treeview(self.frame)
         self.treeview_duplicates.grid()
 
-        self.label_minpercent = ttk.Label(self.frame, text="minpercent:")
-        self.label_minpercent.grid()
+        self.label_min_percent = ttk.Label(self.frame, text="min_percent:")
+        self.label_min_percent.grid()
 
-        self.stringvar_minpercent = tk.StringVar(value=70)
-        self.entry_minpercent = tk.Entry(self.frame, textvariable=self.stringvar_minpercent)
-        self.entry_minpercent.grid()
+        self.stringvar_min_percent = tk.StringVar(value=90)
+        self.entry_min_percent = tk.Entry(self.frame, textvariable=self.stringvar_min_percent)
+        self.entry_min_percent.grid()
 
-        self.label_maxpercent = ttk.Label(self.frame, text="maxpercent:")
-        self.label_maxpercent.grid()
+        self.label_max_percent = ttk.Label(self.frame, text="max_percent:")
+        self.label_max_percent.grid()
 
-        self.stringvar_maxpercent = tk.StringVar(value=99)
-        self.entry_maxpecent = tk.Entry(self.frame, textvariable=self.stringvar_maxpercent)
-        self.entry_maxpecent.grid()
+        self.stringvar_max_percent = tk.StringVar(value=95)
+        self.entry_max_percent = tk.Entry(self.frame, textvariable=self.stringvar_max_percent)
+        self.entry_max_percent.grid()
 
         self.label_amount = ttk.Label(self.frame, text="amount:")
         self.label_amount.grid()
@@ -47,15 +50,24 @@ class Duplicator():
         self.entry_amount = tk.Entry(self.frame, textvariable=self.stringvar_amount)
         self.entry_amount.grid()
 
-        self.button_duplicate = ttk.Button(self.frame, text="DUPLICATE", command=self.__duplicate)
+        self.button_duplicate = ttk.Button(self.frame, text="DUPLICATE", command=self.__start_duplicate)
         self.button_duplicate.grid()
 
         # Tkinter mainloop
         self.root.mainloop()
     
+    def __start_duplicate(self):
+        if self.duplicating:
+            print("Already duplicating...")
+        else:
+            threading.Thread(target=self.__duplicate).start()
+    
     def __duplicate(self):
 
-        treeviewdata = []
+        self.duplicating = True
+
+        for file in os.listdir(self.folder_duplicates):
+            os.remove(f"{self.folder_duplicates}/{file}")
 
         for file in os.listdir(self.folder_originals):
 
@@ -65,45 +77,43 @@ class Duplicator():
                 print(f"Skipping {file} due to error")
                 continue
             
-            used_size_multipliers = [] # to ensure unique multipliers
-            max_amount = int(self.stringvar_maxpercent.get()) - int(self.stringvar_minpercent.get()) # to avoid endless while loop
-            
-            # Get info from the image
             image_name, image_extension = os.path.splitext(file)
             image_width, image_height = image.size
-
-            # Create info for the image's duplicate
-            leading_chars = self.__get_random_string(2)
+            
+            used_size_multipliers = [] # to ensure unique multipliers for this image
+            max_amount = int(self.stringvar_max_percent.get()) - int(self.stringvar_min_percent.get()) # to prevent an endless while loop below
+            leading_chars = self.__get_random_string(2) # to name this image's duplicates
 
             for i in range(int(self.stringvar_amount.get())):
 
-                if len(used_size_multipliers) >= max_amount:
-                    break
-
-                size_multiplier = random.randint(int(self.stringvar_minpercent.get()), int(self.stringvar_maxpercent.get())) / 100
+                size_multiplier = random.randint(int(self.stringvar_min_percent.get()), int(self.stringvar_max_percent.get())) / 100
                 while size_multiplier in used_size_multipliers:
                     print(f"{size_multiplier} multiplier was already used, selecting different one...")
-                    size_multiplier = random.randint(int(self.stringvar_minpercent.get()), int(self.stringvar_maxpercent.get())) / 100
+                    size_multiplier = random.randint(int(self.stringvar_min_percent.get()), int(self.stringvar_max_percent.get())) / 100
                 
                 new_image_name = f"{leading_chars}{i}{self.__get_random_string(5)}"
-
                 new_image_width = int(image_width * size_multiplier)
                 new_image_height = int(image_height * size_multiplier)
 
-                # Save the duplicate
                 new_image = image.resize((new_image_width, new_image_height))
                 new_image.save(f"{self.folder_duplicates}/{new_image_name}{image_extension}")
+                print(f"Duplicated {image_name}({image_width}x{image_height}) as {new_image_name}({new_image_width}x{new_image_height})")
 
                 used_size_multipliers.append(size_multiplier)
-                treeviewdata.append(f"{new_image_name}({new_image_width}x{new_image_height})")
-                print(f"Duplicated {image_name}({image_width}x{image_height}) as {new_image_name}({new_image_width}x{new_image_height})")
-        
-        self.__update_treeview_duplicates(treeviewdata)
+                if len(used_size_multipliers) >= max_amount:
+                    break
+
+        print("Done")
+        self.__update_treeview(self.treeview_duplicates, self.folder_duplicates)
+        self.duplicating = False
     
-    def __update_treeview_duplicates(self, treeviewdata):
-        self.treeview_duplicates.delete(*self.treeview_duplicates.get_children())
-        for data in treeviewdata:
-            self.treeview_duplicates.insert("", tk.END, text=data)
+    def __update_treeview(self, treeview, folder):
+        # Empty treeview
+        for child in treeview.get_children():
+            treeview.delete(child)
+        # Refill treeview
+        for file in [file for file in os.listdir(folder) if not file.startswith(".")]:
+            treeview.insert("", tk.END, text=file)
     
     def __get_random_string(self, length):
         chars = "abcdefghijklmnopqrstuvwxyz"
