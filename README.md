@@ -4,7 +4,7 @@
 # Getting Started
 Get this project set up locally
 ### Prerequisites
-* Pillow (`pip3 install Pillow`)
+* Pillow (`pip3 install pillow`)
 ### Setting up
 * Clone this repository
 * Using a text editor, open (repository)/src
